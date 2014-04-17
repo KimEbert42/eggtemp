@@ -1,4 +1,4 @@
-#include "msp430g2231.h"
+#include "msp430g2452.h"
 
 #define LED_0 BIT0 
 #define LED_1 BIT6
