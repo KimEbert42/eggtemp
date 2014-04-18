@@ -5,6 +5,11 @@
 #define LED_OUT P1OUT
 #define LED_DIR P1DIR
 
+#define CAL_ADC_15T30 (*(unsigned int *)(0x10DA+0x08))
+#define CAL_ADC_15T85 (*(unsigned int *)(0x10DA+0x0A))
+#define CAL_ADC_25T30 (*(unsigned int *)(0x10DA+0x0E))
+#define CAL_ADC_25T85 (*(unsigned int *)(0x10DA+0x10))
+
 volatile unsigned int timerSleep = 0;
 
 /*
@@ -132,13 +137,14 @@ void morse_send_string(char* string)
 
 void chiptemp_setup()
 {
-    ADC10CTL0 = SREF_1 + ADC10SHT_3 + REFON + ADC10ON;
+    ADC10CTL0 = 0;
     ADC10CTL1 = INCH_10 + ADC10DIV_3;   // Channel 10 = Temp Sensor
+    ADC10CTL0 = SREF_1 + ADC10SHT_3 + REFON + ADC10ON;// + REF2_5V;
 }
 
 int chiptemp_read()
 {
-    unsigned int adc;
+    long adc;
  
     // ENC = enable conversion, ADC10SC = start conversion
     ADC10CTL0 |= ENC + ADC10SC;
@@ -169,7 +175,18 @@ int chiptemp_read()
     // F = (A * 0.742737676057 - 499.943661971 + 32)
     // F = (A + 48,676 - 30,666,687.8873) / 65535
     // return degrees F
-    return (int)(((long)adc * 48676L - 30666688L) >> 16);
+    //
+    // Use calibration values
+    adc = (
+	 ((adc - (long)CAL_ADC_15T30) * (long)100 * (long)(85-30))
+	/
+	 ((long)(CAL_ADC_15T85 - CAL_ADC_15T30))
+	+
+	 ((long)3000)
+	);
+    adc = (long)9*adc/(long)5+(long)3200;
+    return (int)(adc);
+    // return (int)(((long)adc * 48676L - 30666688L) >> 16);
 }
 
 char buf[10];
@@ -238,12 +255,14 @@ void main(void)
 
 	while (1)
 	{
+                int tmp = 0;
 		LED_OUT |= (LED_1);
-		itoa(chiptemp_read(), buf);
+                tmp = chiptemp_read();
+		itoa(tmp, buf);
 		LED_OUT &= ~(LED_1);
-		morse_send_string("THE TEMP IS \0");
+	//	morse_send_string("THE TEMP IS \0");
 		morse_send_string(buf);
-		morse_send_string(" F\0");
+	//	morse_send_string(" F\0");
 		sleep(500);
 	}
 
@@ -253,7 +272,7 @@ void main(void)
 
 // Timer A0 interrupt service routine
 // Occurs every 1/100th of a second
-#pragma vector=TIMERA0_VECTOR
+#pragma vector=TIMER0_A0_VECTOR
 __interrupt void Timer_A (void)
 {
 	if (timerSleep != 0)
