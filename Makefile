@@ -2,7 +2,7 @@
 MSP430=msp430g2452
 
 CC=msp430-gcc
-CFLAGS=-mmcu=$(MSP430) -O0
+CFLAGS=-mmcu=$(MSP430) -Os
 CURDIR=`pwd`
 LDFLAGS=-mmcu=$(MSP430) # -Wl,-L ./$(MSP430)/ -Wl,-T ./$(MSP430)/msp430.x
 # -Wl,--verbose -Wl,-M # DEBUG FLAGS
@@ -10,7 +10,7 @@ LDFLAGS=-mmcu=$(MSP430) # -Wl,-L ./$(MSP430)/ -Wl,-T ./$(MSP430)/msp430.x
 COMMONSRC=
 COMMONOBJ=$(COMMONSRC:.c=.o)
 COMMONH=
-NOTESSRC=weather.c
+NOTESSRC=eggs.c
 NOTESOBJ=$(NOTESSRC:.c=.o)
 NOTESEXE=$(NOTESSRC:.c=.bin)
 

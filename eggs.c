@@ -253,16 +253,24 @@ void main(void)
 
 	__enable_interrupt();
 
+	LED_OUT |= (LED_1);
+	sleep(100);
+	LED_OUT &= ~(LED_1);
 	while (1)
 	{
                 int tmp = 0;
 		LED_OUT |= (LED_1);
                 tmp = chiptemp_read();
-		itoa(tmp, buf);
 		LED_OUT &= ~(LED_1);
-	//	morse_send_string("THE TEMP IS \0");
-		morse_send_string(buf);
-	//	morse_send_string(" F\0");
+
+		// If temp is above 100.5
+                if (tmp >= 10050) // include two decimal places
+		{
+			itoa(tmp, buf);
+		//	morse_send_string("THE TEMP IS \0");
+			morse_send_string(buf);
+		//	morse_send_string(" F\0");
+		}
 		sleep(500);
 	}
 
