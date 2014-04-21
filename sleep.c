@@ -6,7 +6,7 @@ void sleep(unsigned int centaseconds)
 {
 #ifndef VLOCLK12Khz
         timerSleep = centaseconds;
-        __bis_SR_register((CPUOFF + SCG1 + GIE)); // LPM0 with interrupts enabled
+        __bis_SR_register((CPUOFF + SCG0 + GIE)); // LPM1 with interrupts enabled
 #else
 	// Running at 12Khz we can't afford to wake up every centa second, so lower our resolution a little bit.
 	centaseconds = centaseconds / 10;
