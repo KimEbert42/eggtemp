@@ -4,14 +4,15 @@ volatile unsigned int timerSleep = 0;
 
 void sleep(unsigned int centaseconds)
 {
+#ifndef VLOCLK12Khz
         timerSleep = centaseconds;
-#ifndef VLOCKL12Khz
         __bis_SR_register((CPUOFF + SCG1 + GIE)); // LPM0 with interrupts enabled
 #else
 	// Running at 12Khz we can't afford to wake up every centa second, so lower our resolution a little bit.
-	timerSleep = timerSleep / 10;
-        if (timerSleep == 0)
-		timerSleep = 1;
+	centaseconds = centaseconds / 10;
+        if (centaseconds == 0)
+		centaseconds = 1;
+        timerSleep = centaseconds;
         __bis_SR_register((CPUOFF + SCG0 + SCG1 + GIE)); // LPM3 with interrupts enabled
 #endif
 }
