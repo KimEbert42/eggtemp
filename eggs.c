@@ -50,11 +50,14 @@ void main(void)
 {
 	WDTCTL = WDTPW + WDTHOLD; // Stop watchdog timer
 
-	chiptemp_setup();
-
 	//Set clock to 1Mhz
+#ifndef VLOCLK12Khz
 	BCSCTL1 = CALBC1_1MHZ; // Set range
 	DCOCTL = CALDCO_1MHZ;  // Set DCO step and modulation
+#else
+	//Set clock to Internal Very Low Power Low Frequency Oscillator ~12Khz
+	BCSCTL3 |= LFXT1S_2;
+#endif
 
 	LED_DIR |= (LED_0 | LED_1); // Set P1.0 and P1.6
 	LED_OUT &= ~(LED_0 | LED_1); // Set the LEDs off

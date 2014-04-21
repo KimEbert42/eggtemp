@@ -8,6 +8,5 @@
 #define CAL_ADC_25T30 (*(unsigned int *)(0x10DA+0x0E))
 #define CAL_ADC_25T85 (*(unsigned int *)(0x10DA+0x10))
 
-void chiptemp_setup();
 int chiptemp_read();
 
