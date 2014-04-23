@@ -56,16 +56,16 @@ volatile unsigned long event_counter;
 
 void inline time_event()
 {
-	if ((event_counter % 1000) == 0) // Every 10 seconds // for testing 1 second
+	if ((event_counter % 1000L) == 0) // Every 10 seconds // for testing 1 second
 	{
 		events |= EVENT_CHECKTEMP;
 
-		if ((event_counter % 6000) == 0) // Every 60 seconds
+		if ((event_counter % 6000L) == 0) // Every 60 seconds
 		{
 			events |= EVENT_BLINKLED;
 		}
 		// only check if we are on a 10 second boundry so we do less math
-		if ((event_counter % (unsigned long)90000) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
+		if ((event_counter % 90000L) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
 		{
 			events |= EVENT_RECORDTEMP + EVENT_WATCHDOG;
 			event_counter = 0;// Reset Event counter
@@ -150,7 +150,6 @@ void main(void)
 	{
 		int i;
 
-		next_memory = 0;
 		for (i = 0; i < INTS_TOTAL; i ++)
 		{
 			if (*(INFOE + i) == 0xffff)
@@ -161,6 +160,7 @@ void main(void)
 			i = 0;
 			flash_erase(INFOE);
 		}
+		next_memory = i;
 	}
 
 	// Setup Timer
