@@ -46,47 +46,177 @@ void itoa(int n, char s[])
 	reverse(s);
 }
 
+volatile unsigned int events; // 16 events
+volatile unsigned long event_counter;
+
+#define EVENT_WATCHDOG 0x0001
+#define EVENT_CHECKTEMP 0x0002
+#define EVENT_RECORDTEMP 0x0004
+#define EVENT_BLINKLED 0x0008
+
+void inline time_event()
+{
+	if ((event_counter % 1000) == 0) // Every 10 seconds // for testing 1 second
+	{
+		events |= EVENT_CHECKTEMP;
+
+		if ((event_counter % 6000) == 0) // Every 60 seconds
+		{
+			events |= EVENT_BLINKLED;
+		}
+		// only check if we are on a 10 second boundry so we do less math
+		if ((event_counter % (unsigned long)90000) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
+		{
+			events |= EVENT_RECORDTEMP + EVENT_WATCHDOG;
+			event_counter = 0;// Reset Event counter
+		}
+	}
+	event_counter ++;
+}
+
+/**************************
+ *
+ * Memory for history is stored at 0xe000 + 4096 bytes
+ * Each block is divided into 512 byte segments
+ * 0xe000 - 0xe1ff
+ * 0xe200 - 0xe3ff
+ * 0xe400 - 0xe5ff
+ * 0xe600 - 0xe7ff
+ * ...
+ *
+ * Temp will be store as unsigned int with a value less then 0xffff giving us
+ * 1024 data points, or about 10 days of data points. (Data point every 15 minutes)
+ *
+ * Max ints is 2048
+ * Int cannot == 0xffff, so we make it 0xfffe
+ * Ints per segment = 256
+ * */
+#define INFOE ((int *)(0xe000))
+#define INTS_PER_SEGMENT 256
+#define INTS_TOTAL 2048
+
+volatile int next_memory;
+
+void save_temp(int temp)
+{
+	int after_next_memory = 0;
+	if (temp == 0xffff)
+	{
+		temp = 0xfffe;
+	}
+	
+	flash_write_int(INFOE + next_memory, temp);
+
+	next_memory ++;
+
+	if (next_memory >= INTS_TOTAL)
+		next_memory = 0;
+
+	after_next_memory = next_memory + 1;
+	if (after_next_memory >= INTS_TOTAL)
+		after_next_memory = 0;
+
+	if (*(INFOE + after_next_memory) != 0xffff)
+	{
+		flash_erase(INFOE + after_next_memory);
+	}
+}
+
 void main(void)
 {
 	WDTCTL = WDTPW + WDTHOLD; // Stop watchdog timer
 
+	// Setup the Clocks
 	//Set clock to 1Mhz
-#ifndef VLOCLK12Khz
 	BCSCTL1 = CALBC1_1MHZ; // Set range
 	DCOCTL = CALDCO_1MHZ;  // Set DCO step and modulation
-#else
+#ifdef VLOCLK12Khz
 	//Set clock to Internal Very Low Power Low Frequency Oscillator ~12Khz
 	BCSCTL3 |= LFXT1S_2;
 #endif
 
+	// Setup the LEDS
 	LED_DIR |= (LED_0 | LED_1); // Set P1.0 and P1.6
 	LED_OUT &= ~(LED_0 | LED_1); // Set the LEDs off
 
 	CCTL0 = CCIE;
 
-	setup_sleep();
+	// Setup Events
+	
+	events = 0;
+	event_counter = 0;
+
+	// Setup memory
+	{
+		int i;
+
+		next_memory = 0;
+		for (i = 0; i < INTS_TOTAL; i ++)
+		{
+			if (*(INFOE + i) == 0xffff)
+				break;
+		}
+		if (i > INTS_TOTAL)
+		{
+			i = 0;
+			flash_erase(INFOE);
+		}
+	}
+
+	// Setup Timer
+
+	setup_time();
+
+	// Setup the Watchdog
 
 	__enable_interrupt();
 
-	LED_OUT |= (LED_1);
-	sleep(100);
-	LED_OUT &= ~(LED_1);
-	while (1)
+	while (1) // Event loop
 	{
-		int tmp = 0;
-		LED_OUT |= (LED_1);
-		tmp = chiptemp_read();
-		LED_OUT &= ~(LED_1);
-
-		// If temp is above 100.5
-		if (tmp <= 10050) // include two decimal places
+		if (events != 0)
 		{
-			itoa(tmp, buf);
-		//	morse_send_string("THE TEMP IS \0");
-			morse_send_string(buf);
-		//	morse_send_string(" F\0");
+			if ((events & EVENT_WATCHDOG) != 0)
+			{
+				// Watchdog event always goes first.
+				events &= ~EVENT_WATCHDOG;
+			}
+			if ((events & EVENT_RECORDTEMP) != 0)
+			{
+				int tmp = 0;
+				tmp = chiptemp_read();
+
+				save_temp(tmp);
+
+				events &= ~EVENT_RECORDTEMP;
+			}
+			if ((events & EVENT_BLINKLED) != 0)
+			{
+				LED_OUT |= (LED_1);
+				sleep(5);
+				LED_OUT &= ~(LED_1);
+				events &= ~EVENT_BLINKLED;
+			}
+			if ((events & EVENT_CHECKTEMP) != 0)
+			{
+				int tmp = 0;
+				tmp = chiptemp_read();
+
+				// If temp is above 100.5
+				if (tmp >= 10050) // include two decimal places
+				{
+					itoa(tmp, buf);
+				//	morse_send_string("THE TEMP IS \0");
+					morse_send_string(buf);
+				//	morse_send_string(" F\0");
+				}
+				events &= ~EVENT_CHECKTEMP;
+			}
+
 		}
-		sleep(500);
+		if (events == 0)
+		{
+			sleep(100); // Sleep 1 second
+		}
 	}
 
 } 
