@@ -84,7 +84,7 @@ void inline time_event()
  * 0xe600 - 0xe7ff
  * ...
  *
- * Temp will be store as unsigned int with a value less then 0xffff giving us
+ * Temp will be store as an int with a value less then 0xffff giving us
  * 1024 data points, or about 10 days of data points. (Data point every 15 minutes)
  *
  * Max ints is 2048

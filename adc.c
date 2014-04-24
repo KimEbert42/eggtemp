@@ -36,31 +36,17 @@ int chiptemp_read()
  
 	chiptemp_end();
 
-	// VTEMP=0.00355(TEMPC)+0.986
-	// VTEMP / 0.00355 - 0.986 / 0.00355 = TEMPC
-	// C = TEMPC / 0.00355 - 277.746478873
-	// A = 1023 * V / Vref
-	// V = A * Vref / 1023
-	// V = A * 1.5 / 1023
-	// C = A * 1.5/ 1024 / 0.00355 - 277.746478873
-	// C = A * 0.412632042254 - 277.746478873
-	// C = (A * 27042 - 18,202,393) / 65536
-	// C = A * 0.412632042254 - 277.746478873
-	// F = (A * 0.412632042254  * 1.8 - 277.746478873 * 1.8) + 32
-	// F = (A * 0.742737676057 - 499.943661971 + 32)
-	// F = (A + 48,676 - 30,666,687.8873) / 65535
-	// return degrees F
-	//
 	// Use calibration values
+	// We multiply by 10,000 to get better accuracy out of interger math
+	// Finally divide by 100 to get two decimal places
 	adc = (
-	 ((adc - (long)CAL_ADC_15T30) * (long)100 * (long)(85-30))
+	 ((adc - (long)CAL_ADC_15T30) * (long)10000 * (long)(85-30))
 	/
 	 ((long)(CAL_ADC_15T85 - CAL_ADC_15T30))
 	+
-	 ((long)3000)
+	 ((long)300000)
 	);
-	adc = (long)9*adc/(long)5+(long)3200;
-	return (int)(adc);
-	// return (int)(((long)adc * 48676L - 30666688L) >> 16);
+	adc = (long)9*adc/(long)5+(long)320000;
+	return (int)(adc / 100);
 }
 
