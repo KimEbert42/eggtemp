@@ -8,5 +8,6 @@
 #define CAL_ADC_25T30 (*(unsigned int *)(0x10DA+0x0E))
 #define CAL_ADC_25T85 (*(unsigned int *)(0x10DA+0x10))
 
-int chiptemp_read();
+long chiptemp_read();
+int get_temp_f(int oversample_bits);
 

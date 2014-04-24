@@ -64,7 +64,6 @@ void inline time_event()
 		{
 			events |= EVENT_BLINKLED;
 		}
-		// only check if we are on a 10 second boundry so we do less math
 		if ((event_counter % 90000L) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
 		{
 			events |= EVENT_RECORDTEMP + EVENT_WATCHDOG;
@@ -183,7 +182,7 @@ void main(void)
 			if ((events & EVENT_RECORDTEMP) != 0)
 			{
 				int tmp = 0;
-				tmp = chiptemp_read();
+				tmp = get_temp_f(3);
 
 				save_temp(tmp);
 
@@ -199,7 +198,7 @@ void main(void)
 			if ((events & EVENT_CHECKTEMP) != 0)
 			{
 				int tmp = 0;
-				tmp = chiptemp_read();
+				tmp = get_temp_f(3);
 
 				// If temp is above 100.5
 				if (tmp >= 10050) // include two decimal places
