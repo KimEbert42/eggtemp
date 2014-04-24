@@ -3,7 +3,7 @@
 void inline flash_setup()
 {
 	__disable_interrupt(); // Please don't interrupt me
-	FCTL2 = FWKEY + FSSEL1 + FN1; // SMCLK at correct speed for 1MHz clock
+	FCTL2 = FWKEY + FSSEL1 + FN1; // MCLK at correct speed for 1MHz clock
 	FCTL3 = FWKEY; // CLEAR LOCK
 }
 
