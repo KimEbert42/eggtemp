@@ -1,6 +1,6 @@
 #define VLOCLK12Khz
 
-#include "msp430g2452.h"
+#include "msp430g2553.h"
 #include "time.h"
 #include "morse.h"
 #include "adc.h"

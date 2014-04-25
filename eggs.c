@@ -75,7 +75,7 @@ void inline time_event()
 
 /**************************
  *
- * Memory for history is stored at 0xe000 + 4096 bytes
+ * Memory for history is stored at 0xc000 + 12288 bytes
  * Each block is divided into 512 byte segments
  * 0xe000 - 0xe1ff
  * 0xe200 - 0xe3ff
@@ -86,13 +86,13 @@ void inline time_event()
  * Temp will be store as an int with a value less then 0xffff giving us
  * 1024 data points, or about 10 days of data points. (Data point every 15 minutes)
  *
- * Max ints is 2048
+ * Max ints is 6144
  * Int cannot == 0xffff, so we make it 0xfffe
  * Ints per segment = 256
  * */
-#define INFOE ((int *)(0xe000))
+#define INFOE ((int *)(0xc000))
 #define INTS_PER_SEGMENT 256
-#define INTS_TOTAL 2048
+#define INTS_TOTAL 6144
 
 volatile int next_memory;
 

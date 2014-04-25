@@ -1,5 +1,5 @@
 
-MSP430=msp430g2452
+MSP430=msp430g2553
 
 CC=msp430-gcc
 CFLAGS=-mmcu=$(MSP430) -Os
