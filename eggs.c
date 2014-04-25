@@ -49,25 +49,21 @@ void itoa(int n, char s[])
 volatile unsigned int events; // 16 events
 volatile unsigned long event_counter;
 
-#define EVENT_WATCHDOG 0x0001
-#define EVENT_CHECKTEMP 0x0002
-#define EVENT_RECORDTEMP 0x0004
-#define EVENT_BLINKLED 0x0008
+#define EVENT_CHECKTEMP 0x0001
+#define EVENT_RECORDTEMP 0x0002
+#define EVENT_BLINKLED 0x0004
 
 void inline time_event()
 {
-	if ((event_counter % 1000L) == 0) // Every 10 seconds // for testing 1 second
-	{
-		events |= EVENT_CHECKTEMP;
 
-		if ((event_counter % 6000L) == 0) // Every 60 seconds
-		{
-			events |= EVENT_BLINKLED;
-		}
+	if ((event_counter % 6000L) == 0) // Every 60 seconds
+	{
+		events |= EVENT_CHECKTEMP | EVENT_BLINKLED;
+
 		if ((event_counter % 90000L) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
 		{
-			events |= EVENT_RECORDTEMP + EVENT_WATCHDOG;
-			event_counter = 0;// Reset Event counter
+		events |= EVENT_RECORDTEMP;
+		event_counter = 0;// Reset Event counter
 		}
 	}
 	event_counter ++;
@@ -126,11 +122,11 @@ void main(void)
 	WDTCTL = WDTPW + WDTHOLD; // Stop watchdog timer
 
 	// Setup the Clocks
-	//Set clock to 1Mhz
+	//Set MCLK to 1Mhz
 	BCSCTL1 = CALBC1_1MHZ; // Set range
 	DCOCTL = CALDCO_1MHZ;  // Set DCO step and modulation
 #ifdef VLOCLK12Khz
-	//Set clock to Internal Very Low Power Low Frequency Oscillator ~12Khz
+	//Set ACLK to Internal Very Low Power Low Frequency Oscillator ~12Khz
 	BCSCTL3 |= LFXT1S_2;
 #endif
 
@@ -170,15 +166,17 @@ void main(void)
 
 	__enable_interrupt();
 
+	// Setup Buzzer on P2.0
+	P2DIR |= BIT0;
+	P2SEL |= BIT0;
+	TA1CCR0 = 6;
+	TA1CCR2 = 2;
+	TA1CCTL0 = OUTMOD_3;
+	
 	while (1) // Event loop
 	{
 		if (events != 0)
 		{
-			if ((events & EVENT_WATCHDOG) != 0)
-			{
-				// Watchdog event always goes first.
-				events &= ~EVENT_WATCHDOG;
-			}
 			if ((events & EVENT_RECORDTEMP) != 0)
 			{
 				int tmp = 0;
@@ -200,13 +198,17 @@ void main(void)
 				int tmp = 0;
 				tmp = get_temp_f(3);
 
-				// If temp is above 100.5
-				if (tmp >= 10050) // include two decimal places
+				// If temp is above 101.0
+				if (tmp >= 10100) // include two decimal places
 				{
+					TA1CTL = TASSEL_1 + MC_1;
+
+					sleep(50);
+
+					TA1CTL = 0;
+
 					itoa(tmp, buf);
-				//	morse_send_string("THE TEMP IS \0");
 					morse_send_string(buf);
-				//	morse_send_string(" F\0");
 				}
 				events &= ~EVENT_CHECKTEMP;
 			}
