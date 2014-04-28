@@ -198,8 +198,8 @@ void main(void)
 				int tmp = 0;
 				tmp = get_temp_f(3);
 
-				// If temp is above 101.0
-				if (tmp >= 10100) // include two decimal places
+				// If temp is above 101.00 or below 95.00 F
+				if (tmp >= 10100 || tmp <= 9500) // include two decimal places
 				{
 					TA1CTL = TASSEL_1 + MC_1;
 
