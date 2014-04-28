@@ -129,7 +129,9 @@ void main(void)
 	//Set ACLK to Internal Very Low Power Low Frequency Oscillator ~12Khz
 	BCSCTL3 |= LFXT1S_2;
 #endif
-
+#ifdef VLOCLK32Khz
+	BCSCTL3 = XCAP_1;
+#endif 
 	// Setup the LEDS
 	LED_DIR |= (LED_0 | LED_1); // Set P1.0 and P1.6
 	LED_OUT &= ~(LED_0 | LED_1); // Set the LEDs off
@@ -169,8 +171,24 @@ void main(void)
 	// Setup Buzzer on P2.0
 	P2DIR |= BIT0;
 	P2SEL |= BIT0;
-	TA1CCR0 = 6;
-	TA1CCR2 = 2;
+
+#ifdef VLOCLK12Khz
+	/* 
+ 	 * 12 Khz / 3 Khz to get even numbers
+ 	 *
+ 	 * */
+	TA1CCR0 = 12000/3/1000;
+	TA1CCR2 = 12000/3/2/1000;
+#endif
+#ifdef VLOCLK32Khz
+	/*
+	 * 32 Khz / 4 Khz best for buzzer
+ 	 *
+ 	 * */
+	TA1CCR0 = 32768/4/1000;
+	TA1CCR2 = 32768/4/2/2/1000;
+#endif
+// TODO add non LPO mode.
 	TA1CCTL0 = OUTMOD_3;
 	
 	while (1) // Event loop

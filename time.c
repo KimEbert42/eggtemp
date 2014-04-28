@@ -6,8 +6,15 @@ void sleep(unsigned int centaseconds)
 {
         timerSleep = centaseconds;
 #ifndef VLOCLK12Khz
+#ifndef VLOCLK32Khz
         __bis_SR_register((CPUOFF + SCG0 + GIE)); // LPM1 with interrupts enabled
-#else
+#endif
+#endif
+
+#ifdef VLOCLK32Khz
+        __bis_SR_register((CPUOFF + SCG0 + SCG1 + GIE)); // LPM3 with interrupts enabled
+#endif
+#ifdef VLOCLK12Khz
         __bis_SR_register((CPUOFF + SCG0 + SCG1 + GIE)); // LPM3 with interrupts enabled
 #endif
 }
@@ -17,10 +24,20 @@ void setup_time()
         //1 MHz = 1,000,000 cycles per second
         //1,000,000 / 100 = 10,000
 #ifndef VLOCLK12Khz
+#ifndef VLOCLK32Khz
         TACCR0 = 10000;// 100 interrupts per second
         TACTL = TASSEL_2 + MC_1; // Set the timer A to SMCLCK, Continuous
         // Clear the timer and enable timer interrupt
-#else
+#endif
+#endif
+
+#ifdef VLOCLK32Khz
+	// Clock is 32768
+	TACCR0 = 328; // 100 Interrupts per second
+	TACTL = TASSEL_1 + MC_1;
+#endif 
+
+#ifdef VLOCLK12Khz
 	// Clock is roughly 12 Khz per second
 	TACCR0 = 120; // 100 interrupts per second
         TACTL = TASSEL_1 + MC_1; // Set the timer A to ALCK, Continuous

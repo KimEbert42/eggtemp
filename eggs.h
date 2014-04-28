@@ -1,4 +1,4 @@
-#define VLOCLK12Khz
+#define VLOCLK32Khz
 
 #include "msp430g2553.h"
 #include "time.h"
