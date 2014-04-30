@@ -25,22 +25,22 @@ void setup_time()
         //1,000,000 / 100 = 10,000
 #ifndef VLOCLK12Khz
 #ifndef VLOCLK32Khz
-        TACCR0 = 10000;// 100 interrupts per second
-        TACTL = TASSEL_2 + MC_1; // Set the timer A to SMCLCK, Continuous
+        TA0CCR0 = 10000;// 100 interrupts per second
+        TA0CTL = TASSEL_2 + MC_1; // Set the timer A to SMCLCK, Continuous
         // Clear the timer and enable timer interrupt
 #endif
 #endif
 
 #ifdef VLOCLK32Khz
 	// Clock is 32768
-	TACCR0 = 328; // 100 Interrupts per second
-	TACTL = TASSEL_1 + MC_1;
+	TA0CCR0 = 328; // 100 Interrupts per second
+	TA0CTL = TASSEL_1 + MC_1;
 #endif 
 
 #ifdef VLOCLK12Khz
 	// Clock is roughly 12 Khz per second
-	TACCR0 = 120; // 100 interrupts per second
-        TACTL = TASSEL_1 + MC_1; // Set the timer A to ALCK, Continuous
+	TA0CCR0 = 120; // 100 interrupts per second
+        TA0CTL = TASSEL_1 + MC_1; // Set the timer A to ALCK, Continuous
 #endif
 }
 

@@ -5,6 +5,32 @@
 #define LED_OUT P1OUT
 #define LED_DIR P1DIR
 
+#ifdef VLOCLK12Khz
+	/* 
+ 	 * 12 Khz / 3 Khz to get even numbers
+ 	 *
+ 	 * */
+#define	TONE 12000/3/1000
+#define	DUTY 12000/3/2/1000
+#endif
+
+#ifdef VLOCLK32Khz
+	/*
+	 * 32 Khz / 4 Khz best for buzzer
+ 	 *
+ 	 * */
+#define	TONE 32768/4/1000
+#define	DUTY 32768/4/2/1000
+#endif
+
+#ifndef VLOCLK12Khz 
+#ifndef VLOCLK32Khz
+	// 1 Mhz / 4 Khz
+#define	TONE (int)(1000000L/4L/1000L)
+#define	DUTY (int)(1000000L/4L/2L/1000L)
+#endif
+#endif
+
 char buf[10];
 
 /* strlen: return length of s */
@@ -136,7 +162,7 @@ void main(void)
 	LED_DIR |= (LED_0 | LED_1); // Set P1.0 and P1.6
 	LED_OUT &= ~(LED_0 | LED_1); // Set the LEDs off
 
-	CCTL0 = CCIE;
+	TA0CCTL0 = CCIE;
 
 	// Setup Events
 	
@@ -164,33 +190,27 @@ void main(void)
 
 	setup_time();
 
-	// Setup the Watchdog
-
 	__enable_interrupt();
 
 	// Setup Buzzer on P2.0
-	P2DIR |= BIT0;
-	P2SEL |= BIT0;
+	P2DIR |= BIT1;
+	P2SEL |= BIT1;
 
-#ifdef VLOCLK12Khz
-	/* 
- 	 * 12 Khz / 3 Khz to get even numbers
- 	 *
- 	 * */
-	TA1CCR0 = 12000/3/1000;
-	TA1CCR2 = 12000/3/2/1000;
-#endif
+	TA1CCTL1 = OUTMOD_7;
+	TA1CCR0 = 0;
+	TA1CCR1 = DUTY;
 #ifdef VLOCLK32Khz
-	/*
-	 * 32 Khz / 4 Khz best for buzzer
- 	 *
- 	 * */
-	TA1CCR0 = 32768/4/1000;
-	TA1CCR2 = 32768/4/2/2/1000;
+	TA1CTL = TASSEL_1 + MC_1;
 #endif
-// TODO add non LPO mode.
-	TA1CCTL0 = OUTMOD_3;
-	
+#ifdef VLOCLK12Khz
+	TA1CTL = TASSEL_1 + MC_1;
+#endif
+#ifndef VLOCLK12Khz 
+#ifndef VLOCLK32Khz
+	TA1CTL = TASSEL_2 + MC_1;
+#endif
+#endif
+
 	while (1) // Event loop
 	{
 		if (events != 0)
@@ -219,11 +239,10 @@ void main(void)
 				// If temp is above 101.00 or below 95.00 F
 				if (tmp >= 10100 || tmp <= 9500) // include two decimal places
 				{
-					TA1CTL = TASSEL_1 + MC_1;
-
+					TA1CCR0 = TONE;
 					sleep(50);
 
-					TA1CTL = 0;
+					TA1CCR0 = 0;
 
 					itoa(tmp, buf);
 					morse_send_string(buf);
