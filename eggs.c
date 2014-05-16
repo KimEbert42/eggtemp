@@ -81,6 +81,11 @@ volatile unsigned long event_counter;
 
 void inline time_event()
 {
+/**
+ * Let us kick off the event counter before we detect the events,
+ * This allows us to avoid running events in a brownout conidition.
+ * */
+	event_counter ++;
 
 	if ((event_counter % 6000L) == 0) // Every 60 seconds
 	{
@@ -88,11 +93,10 @@ void inline time_event()
 
 		if ((event_counter % 90000L) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
 		{
-		events |= EVENT_RECORDTEMP;
-		event_counter = 0;// Reset Event counter
+			events |= EVENT_RECORDTEMP;
+			event_counter = 0;// Reset Event counter
 		}
 	}
-	event_counter ++;
 }
 
 /**************************
