@@ -240,8 +240,8 @@ void main(void)
 				int tmp = 0;
 				tmp = get_temp_f(3);
 
-				// If temp is above 101.00 or below 95.00 F
-				if (tmp >= 10100 || tmp <= 9500) // include two decimal places
+				// If temp is above 101.50 or below 96.00 F
+				if (tmp >= 10150 || tmp <= 9600) // include two decimal places
 				{
 					TA1CCR0 = TONE;
 					sleep(50);
