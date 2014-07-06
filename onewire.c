@@ -120,7 +120,10 @@ uint8_t onewire_read_byte(onewire_t *ow)
 	return byte;
 }
 
-int get_ext_temp_f(int oversample_bits)
+/*
+ * Returns temperature in C * 16.
+*/
+int get_ext_temp_c()
 {
 	int result = 0;
 	uint8_t one = 0;
@@ -134,6 +137,7 @@ int get_ext_temp_f(int oversample_bits)
 	ow.port_dir = &P1DIR;
 	ow.pin = BIT7;
 
+	//Start up the one wire line.
 	onewire_line_high(&ow);
 	sleepMicro(100);
 
@@ -186,3 +190,19 @@ int get_ext_temp_f(int oversample_bits)
 	return result;
 }
 
+int get_ext_temp_f(int oversample_bits)
+{
+	long i = 0;
+	long tmp = 0;
+	long max = 1L << (oversample_bits * 2);
+
+	for (i = 0; i < max; i++)
+		tmp += (long)get_ext_temp_c();
+
+	tmp = tmp >> oversample_bits;
+	tmp = tmp * 10000L / 16L;
+	tmp = tmp >> oversample_bits;//We want things to be base 10 intead of base 2, and we need to adjust for oversampling in our C to F conversion, as it is easier to read the temperature
+
+	tmp = 9L*tmp/5L+(32L*10000L);
+	return (int)(tmp / 100L);
+}

@@ -93,7 +93,7 @@ void inline time_event()
 	{
 		events |= EVENT_CHECKTEMP | EVENT_EXT_CHECKTEMP | EVENT_BLINKLED;
 
-//		if ((event_counter % 90000L) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
+		if ((event_counter % 90000L) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
 		{
 			events |= EVENT_RECORDTEMP | EVENT_EXT_RECORDTEMP;
 			event_counter = 0;// Reset Event counter
@@ -224,7 +224,7 @@ void main(void)
 			if ((events & EVENT_RECORDTEMP) != 0)
 			{
 				int tmp = 0;
-				save_temp(tmp);
+				save_temp(tmp);// Store a 0 before ext temp
 
 				tmp = (int)(((long)get_temp_f(3)
 					+ (long)get_temp_f(3)
@@ -237,12 +237,12 @@ void main(void)
 			if ((events & EVENT_EXT_RECORDTEMP) != 0)
 			{
 				int tmp = 1;
-				save_temp(tmp);
+				save_temp(tmp);// Store a 1 before ext temp
 
-				tmp = (int)(((long)get_ext_temp_f(3) ));
-	//				+ (long)get_ext_temp_f(3)
-	//				+ (long)get_ext_temp_f(3)
-	//				+ (long)get_ext_temp_f(3)) / 4L);
+				tmp = (int)(((long)get_ext_temp_f(3) 
+					+ (long)get_ext_temp_f(3)
+					+ (long)get_ext_temp_f(3)
+					+ (long)get_ext_temp_f(3)) / 4L);
 				save_temp(tmp);
 
 				events &= ~EVENT_EXT_RECORDTEMP;
@@ -274,8 +274,8 @@ void main(void)
 			}
 			if ((events & EVENT_EXT_CHECKTEMP) != 0)
 			{
-	/*			int tmp = 0;
-				tmp = get_ext_temp_f(3);
+				int tmp = 0;
+				tmp = get_ext_temp_f(0);
 
 				// If temp is above 101.50 or below 96.00 F
 				if (tmp >= 10250)// || tmp <= 9600) // include two decimal places
@@ -287,7 +287,7 @@ void main(void)
 
 					itoa(tmp, buf);
 					morse_send_string(buf);
-				}*/
+				}
 				events &= ~EVENT_EXT_CHECKTEMP;
 			}
 
