@@ -10,6 +10,14 @@
  *
  * */
 
+#ifndef __SLEEP_H
+#define __SLEEP_H
+
+#define CYCLES_PER_MS (8) // Depends on CPU speed - 8Mhz
+#define sleepMicro(x) __delay_cycles((x * CYCLES_PER_MS))
 void sleep(unsigned int centaseconds);
 
 void setup_time();
+
+
+#endif

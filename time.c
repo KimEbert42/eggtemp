@@ -21,11 +21,11 @@ void sleep(unsigned int centaseconds)
 
 void setup_time()
 {
-        //1 MHz = 1,000,000 cycles per second
-        //1,000,000 / 100 = 10,000
+        //8 MHz = 8,000,000 cycles per second
+        //8,000,000 / 100 = 80,000
 #ifndef VLOCLK12Khz
 #ifndef VLOCLK32Khz
-        TA0CCR0 = 10000;// 100 interrupts per second
+        TA0CCR0 = 80000;// 100 interrupts per second
         TA0CTL = TASSEL_2 + MC_1; // Set the timer A to SMCLCK, Continuous
         // Clear the timer and enable timer interrupt
 #endif

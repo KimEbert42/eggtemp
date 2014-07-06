@@ -1,3 +1,6 @@
+#ifndef __ADC_H
+#define __ADC_H
+
 #define LED_0 BIT0 
 #define LED_1 BIT6
 #define LED_OUT P1OUT
@@ -11,3 +14,4 @@
 long chiptemp_read();
 int get_temp_f(int oversample_bits);
 
+#endif

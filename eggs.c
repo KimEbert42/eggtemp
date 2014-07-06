@@ -25,9 +25,9 @@
 
 #ifndef VLOCLK12Khz 
 #ifndef VLOCLK32Khz
-	// 1 Mhz / 4 Khz
-#define	TONE (int)(1000000L/4L/1000L)
-#define	DUTY (int)(1000000L/4L/2L/1000L)
+	// 8 Mhz / 4 Khz
+#define	TONE (int)(8000000L/4L/1000L)
+#define	DUTY (int)(8000000L/4L/2L/1000L)
 #endif
 #endif
 
@@ -78,6 +78,8 @@ volatile unsigned long event_counter;
 #define EVENT_CHECKTEMP 0x0001
 #define EVENT_RECORDTEMP 0x0002
 #define EVENT_BLINKLED 0x0004
+#define EVENT_EXT_CHECKTEMP 0x0008
+#define EVENT_EXT_RECORDTEMP 0x0010
 
 void inline time_event()
 {
@@ -89,11 +91,11 @@ void inline time_event()
 
 	if ((event_counter % 6000L) == 0) // Every 60 seconds
 	{
-		events |= EVENT_CHECKTEMP | EVENT_BLINKLED;
+		events |= EVENT_CHECKTEMP | EVENT_EXT_CHECKTEMP | EVENT_BLINKLED;
 
-		if ((event_counter % 90000L) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
+//		if ((event_counter % 90000L) == 0) // Every 15 minutes (15 * 60 * 100 = 900 * 100 = 90,000
 		{
-			events |= EVENT_RECORDTEMP;
+			events |= EVENT_RECORDTEMP | EVENT_EXT_RECORDTEMP;
 			event_counter = 0;// Reset Event counter
 		}
 	}
@@ -153,8 +155,8 @@ void main(void)
 
 	// Setup the Clocks
 	//Set MCLK to 1Mhz
-	BCSCTL1 = CALBC1_1MHZ; // Set range
-	DCOCTL = CALDCO_1MHZ;  // Set DCO step and modulation
+	BCSCTL1 = CALBC1_8MHZ; // Set range
+	DCOCTL = CALDCO_8MHZ;  // Set DCO step and modulation
 #ifdef VLOCLK12Khz
 	//Set ACLK to Internal Very Low Power Low Frequency Oscillator ~12Khz
 	BCSCTL3 |= LFXT1S_2;
@@ -222,11 +224,28 @@ void main(void)
 			if ((events & EVENT_RECORDTEMP) != 0)
 			{
 				int tmp = 0;
-				tmp = get_temp_f(3);
+				save_temp(tmp);
 
+				tmp = (int)(((long)get_temp_f(3)
+					+ (long)get_temp_f(3)
+					+ (long)get_temp_f(3)
+					+ (long)get_temp_f(3)) / 4L);
 				save_temp(tmp);
 
 				events &= ~EVENT_RECORDTEMP;
+			}
+			if ((events & EVENT_EXT_RECORDTEMP) != 0)
+			{
+				int tmp = 1;
+				save_temp(tmp);
+
+				tmp = (int)(((long)get_ext_temp_f(3) ));
+	//				+ (long)get_ext_temp_f(3)
+	//				+ (long)get_ext_temp_f(3)
+	//				+ (long)get_ext_temp_f(3)) / 4L);
+				save_temp(tmp);
+
+				events &= ~EVENT_EXT_RECORDTEMP;
 			}
 			if ((events & EVENT_BLINKLED) != 0)
 			{
@@ -237,11 +256,11 @@ void main(void)
 			}
 			if ((events & EVENT_CHECKTEMP) != 0)
 			{
-				int tmp = 0;
+/*				int tmp = 0;
 				tmp = get_temp_f(3);
 
 				// If temp is above 101.50 or below 96.00 F
-				if (tmp >= 10150 || tmp <= 9600) // include two decimal places
+				if (tmp >= 10250)// || tmp <= 9600) // include two decimal places
 				{
 					TA1CCR0 = TONE;
 					sleep(50);
@@ -250,8 +269,26 @@ void main(void)
 
 					itoa(tmp, buf);
 					morse_send_string(buf);
-				}
+				}*/
 				events &= ~EVENT_CHECKTEMP;
+			}
+			if ((events & EVENT_EXT_CHECKTEMP) != 0)
+			{
+	/*			int tmp = 0;
+				tmp = get_ext_temp_f(3);
+
+				// If temp is above 101.50 or below 96.00 F
+				if (tmp >= 10250)// || tmp <= 9600) // include two decimal places
+				{
+					TA1CCR0 = TONE;
+					sleep(50);
+
+					TA1CCR0 = 0;
+
+					itoa(tmp, buf);
+					morse_send_string(buf);
+				}*/
+				events &= ~EVENT_EXT_CHECKTEMP;
 			}
 
 		}

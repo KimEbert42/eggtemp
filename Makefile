@@ -7,9 +7,9 @@ CURDIR=`pwd`
 LDFLAGS=-mmcu=$(MSP430) -Wl,-L ./$(MSP430)/ -Wl,-T ./$(MSP430)/msp430.x
 # -Wl,--verbose -Wl,-M # DEBUG FLAGS
 #LDFLAGS=-mmcu=$(MSP430)
-COMMONSRC=adc.c morse.c time.c flash.c
+COMMONSRC=adc.c morse.c time.c flash.c onewire.c
 COMMONOBJ=$(COMMONSRC:.c=.o)
-COMMONH=eggs.h adc.h morse.h time.h flash.h
+COMMONH=eggs.h adc.h morse.h time.h flash.h onewire.h
 NOTESSRC=eggs.c
 NOTESOBJ=$(NOTESSRC:.c=.o)
 NOTESEXE=$(NOTESSRC:.c=.bin)
