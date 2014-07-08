@@ -93,7 +93,7 @@ void inline time_event()
  * */
 	event_counter ++;
 
-	if ((event_counter % 100L) == 0) // Every 1 seconds
+	if ((event_counter % 1000L) == 0) // Every 10 seconds
 	{
 		events |= EVENT_CHECKTEMP | EVENT_EXT_CHECKTEMP | EVENT_BLINKLED;
 
@@ -285,7 +285,8 @@ void main(void)
 				int tmp = 0;
 				tmp = get_ext_temp_f(0);
 
-				if (tmp <= 9850)
+				// tmp returns 0 C on read error
+				if (tmp <= 9850 && tmp > 3300)
 				{
 					RELAY_OUT |= RELAY; // Turn on RELAY to increase temperature
 				}
