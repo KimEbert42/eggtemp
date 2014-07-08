@@ -174,7 +174,7 @@ void main(void)
 
 	// Setup Relay
 	RELAY_DIR |= RELAY; // Set P1.0 and P1.6
-	RELAY_OUT &= ~(RELAY) // Set the LEDs off
+	RELAY_OUT &= ~(RELAY); // Set the LEDs off
 
 	TA0CCTL0 = CCIE;
 
@@ -287,11 +287,11 @@ void main(void)
 
 				if (tmp <= 9850)
 				{
-					RELAY_OUT |= RELAY // Turn on RELAY to increase temperature
+					RELAY_OUT |= RELAY; // Turn on RELAY to increase temperature
 				}
 				if (tmp >= 9900)
 				{
-					RELAY_OUT &= ~(RELAY) // Turn off RELAY to decrease temperature
+					RELAY_OUT &= ~(RELAY); // Turn off RELAY to decrease temperature
 				}
 
 				// If temp is above 101.50 or below 96.00 F
