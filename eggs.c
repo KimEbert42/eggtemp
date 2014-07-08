@@ -5,6 +5,10 @@
 #define LED_OUT P1OUT
 #define LED_DIR P1DIR
 
+#define RELAY BIT4
+#define RELAY_OUT P1OUT
+#define RELAY_DIR P1DIR
+
 #ifdef VLOCLK12Khz
 	/* 
  	 * 12 Khz / 3 Khz to get even numbers
@@ -89,7 +93,7 @@ void inline time_event()
  * */
 	event_counter ++;
 
-	if ((event_counter % 6000L) == 0) // Every 60 seconds
+	if ((event_counter % 100L) == 0) // Every 1 seconds
 	{
 		events |= EVENT_CHECKTEMP | EVENT_EXT_CHECKTEMP | EVENT_BLINKLED;
 
@@ -167,6 +171,10 @@ void main(void)
 	// Setup the LEDS
 	LED_DIR |= (LED_0 | LED_1); // Set P1.0 and P1.6
 	LED_OUT &= ~(LED_0 | LED_1); // Set the LEDs off
+
+	// Setup Relay
+	RELAY_DIR |= RELAY; // Set P1.0 and P1.6
+	RELAY_OUT &= ~(RELAY) // Set the LEDs off
 
 	TA0CCTL0 = CCIE;
 
@@ -276,6 +284,15 @@ void main(void)
 			{
 				int tmp = 0;
 				tmp = get_ext_temp_f(0);
+
+				if (tmp <= 9850)
+				{
+					RELAY_OUT |= RELAY // Turn on RELAY to increase temperature
+				}
+				if (tmp >= 9900)
+				{
+					RELAY_OUT &= ~(RELAY) // Turn off RELAY to decrease temperature
+				}
 
 				// If temp is above 101.50 or below 96.00 F
 				if (tmp >= 10250)// || tmp <= 9600) // include two decimal places
