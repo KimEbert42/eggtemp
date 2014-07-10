@@ -93,7 +93,7 @@ void inline time_event()
  * */
 	event_counter ++;
 
-	if ((event_counter % 1000L) == 0) // Every 10 seconds
+	if ((event_counter % 200L) == 0) // Every 2 seconds
 	{
 		events |= EVENT_CHECKTEMP | EVENT_EXT_CHECKTEMP | EVENT_BLINKLED;
 
@@ -247,10 +247,8 @@ void main(void)
 				int tmp = 1;
 				save_temp(tmp);// Store a 1 before ext temp
 
-				tmp = (int)(((long)get_ext_temp_f(3) 
-					+ (long)get_ext_temp_f(3)
-					+ (long)get_ext_temp_f(3)
-					+ (long)get_ext_temp_f(3)) / 4L);
+				// Be careful not to take to long to store the temperature, if we do so, we can accidently leave the relay on for too long.
+				tmp = (int)(long)get_ext_temp_f(0);
 				save_temp(tmp);
 
 				events &= ~EVENT_EXT_RECORDTEMP;
